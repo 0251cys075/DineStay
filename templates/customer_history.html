@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Booking History{% endblock %}
+{% block page_title %}Guest History{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">📋 Stay & Booking History</h2>
+  <a href="{{ url_for('customers') }}" class="btn btn-ghost">← Back to Guests</a>
+</div>
+
+<!-- Customer Profile Overview Card -->
+<div class="card card-premium mb-6" style="padding: 24px;">
+  <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+    <div class="customer-avatar" style="width: 65px; height: 65px; font-size: 1.5rem; flex-shrink:0;">
+      {{ customer.name.split()[0][0] if customer.name.split() else '' }}{{ customer.name.split()[-1][0] if customer.name.split()|length > 1 else '' }}
+    </div>
+    <div style="flex-grow: 1;">
+      <h3 style="margin: 0 0 6px 0; font-weight: 800; font-size: 1.4rem;">{{ customer.name }}</h3>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-muted);">
+        <span>📞 {{ customer.phone }}</span>
+        <span>✉️ {{ customer.email }}</span>
+        <span>📅 Registered: {{ customer.registered_on.strftime('%d-%b-%Y') }}</span>
+      </div>
+    </div>
+    <div style="text-align: right; min-width: 150px;">
+      <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Total Reservations</div>
+      <div style="font-size: 2rem; font-weight: 900; color: var(--accent3);">{{ customer.booking_history|length }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Booking History Table Card -->
+<div class="card card-premium">
+  <div class="card-header">
+    <span class="card-title">Stay & Booking Log</span>
+  </div>
+  {% if customer.booking_history %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Room Number</th>
+          <th>Check-In Date</th>
+          <th>Check-Out Date</th>
+          <th class="text-right">Charges Paid</th>
+          <th>Reserved Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in customer.booking_history %}
+        <tr>
+          <td class="text-muted" style="font-size: 0.85rem;">{{ loop.index }}</td>
+          <td><span class="badge badge-purple" style="font-size:0.8rem; font-weight:700;">Room {{ b.room_number }}</span></td>
+          <td><strong>{{ b.check_in }}</strong></td>
+          <td><strong>{{ b.check_out }}</strong></td>
+          <td class="text-right text-gold" style="font-weight: 700;">₹{{ "{:,.2f}".format(b.charge) }}</td>
+          <td class="text-muted" style="font-size: 0.85rem;">{{ b.booked_on }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🗓</div>
+    <p>No booking history exists for {{ customer.name }} yet.</p>
+    <a href="{{ url_for('booking') }}" class="btn btn-primary mt-4">Book a Suite Now</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if item else 'Add' }} Food Item{% endblock %}
+{% block page_title %}{{ 'Edit' if item else 'Add' }} Food Item{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">{{ '✏️ Edit' if item else '➕ Add' }} Food Item</h2>
+  <a href="{{ url_for('menu') }}" class="btn btn-ghost">← Back</a>
+</div>
+<div class="card" style="max-width:480px">
+  <form method="POST">
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Food Name</label>
+        <input class="form-control" type="text" name="food_name"
+               {% if not item %}required{% endif %}
+               value="{{ item.food_name if item else '' }}"
+               placeholder="e.g. Chicken Biryani"
+               {% if item %}readonly{% endif %}/>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Category</label>
+        <input class="form-control" type="text" name="category"
+               {% if not item %}required{% endif %}
+               value="{{ item.category if item else '' }}"
+               placeholder="e.g. Main Course"
+               {% if item %}readonly{% endif %}/>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Price (₹)</label>
+        <input class="form-control" type="number" name="price" required
+               min="0.01" step="0.01"
+               value="{{ item.price if item else '' }}"
+               placeholder="e.g. 280"/>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button type="submit" class="btn btn-primary">{{ 'Update Price' if item else 'Add to Menu' }}</button>
+      <a href="{{ url_for('menu') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

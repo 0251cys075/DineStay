@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+{% block page_title %}Customer Registry{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">👥 Guest Database</h2>
+  <a href="{{ url_for('add_customer') }}" class="btn btn-primary" style="box-shadow: 0 4px 15px rgba(108,99,255,0.4);">+ Register Guest</a>
+</div>
+
+<!-- Search Widget -->
+<div class="card card-premium mb-6" style="padding: 15px 20px;">
+  <div style="display: flex; gap: 15px; align-items: center;">
+    <span style="font-size: 1.2rem;">🔍</span>
+    <input type="text" id="custSearch" placeholder="Search guests by name, phone number, or email address..." 
+           style="width: 100%; padding: 10px 14px; background: rgba(13,15,26,0.5); border: 1px solid var(--border); border-radius: 8px; color: var(--text);"
+           onkeyup="searchGuests()">
+  </div>
+</div>
+
+<div class="card card-premium">
+  <div class="card-header">
+    <span class="card-title">Registered Guests Registry</span>
+  </div>
+  {% if customers %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Guest Details</th>
+          <th>Contact Number</th>
+          <th>Email Address</th>
+          <th>Total Bookings</th>
+          <th>Registered Date</th>
+          <th>Operations</th>
+        </tr>
+      </thead>
+      <tbody id="customersTableBody">
+        {% for c in customers %}
+        <tr class="customer-row">
+          <td><span class="badge badge-purple" style="font-weight: 700;">#{{ c.customer_id }}</span></td>
+          <td>
+            <div class="customer-avatar-row">
+              <div class="customer-avatar">
+                  {{ c.name.split()[0][0] if c.name.split() else '' }}{{ c.name.split()[-1][0] if c.name.split()|length > 1 else '' }}
+              </div>
+              <strong class="cust-name" style="font-size: 0.95rem;">{{ c.name }}</strong>
+            </div>
+          </td>
+          <td class="cust-phone text-muted" style="font-size: 0.85rem;">{{ c.phone }}</td>
+          <td class="cust-email text-muted" style="font-size: 0.85rem;">{{ c.email }}</td>
+          <td>
+            <span class="badge badge-blue" style="font-weight: 700; padding: 3px 8px; font-size: 0.75rem;">
+              {{ c.booking_history|length }} stay(s)
+            </span>
+          </td>
+          <td class="text-muted" style="font-size: 0.85rem;">{{ c.registered_on.strftime('%d-%b-%Y') }}</td>
+          <td>
+            <div class="flex gap-2">
+              <a href="{{ url_for('customer_history', cid=c.customer_id) }}" class="btn btn-ghost btn-sm">History</a>
+              <a href="{{ url_for('edit_customer', cid=c.customer_id) }}" class="btn btn-primary btn-sm" style="padding: 4px 10px; font-size:0.75rem;">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">👤</div>
+    <p>No customers registered yet.</p>
+    <a href="{{ url_for('add_customer') }}" class="btn btn-primary mt-4">Register First Customer</a>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function searchGuests() {
+    const query = document.getElementById('custSearch').value.toLowerCase();
+    const rows = document.querySelectorAll('.customer-row');
+    
+    rows.forEach(row => {
+      const name = row.querySelector('.cust-name').innerText.toLowerCase();
+      const phone = row.querySelector('.cust-phone').innerText.toLowerCase();
+      const email = row.querySelector('.cust-email').innerText.toLowerCase();
+      
+      if (name.includes(query) || phone.includes(query) || email.includes(query)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+</script>
+{% endblock %}

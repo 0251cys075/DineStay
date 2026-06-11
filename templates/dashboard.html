@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+  <div class="stat-card purple">
+    <span class="stat-icon">🛏</span>
+    <span class="stat-value">{{ total_rooms if total_rooms is not none else 0 }}</span>
+    <span class="stat-label">Total Rooms</span>
+  </div>
+  <div class="stat-card green">
+    <span class="stat-icon">✅</span>
+    <span class="stat-value">{{ available_rooms if available_rooms is not none else 0 }}</span>
+    <span class="stat-label">Available Rooms</span>
+  </div>
+  {% if is_admin %}
+  <div class="stat-card pink">
+    <span class="stat-icon">🔒</span>
+    <span class="stat-value">{{ booked_rooms if booked_rooms is not none else 0 }}</span>
+    <span class="stat-label">Booked Rooms</span>
+  </div>
+  <div class="stat-card blue">
+    <span class="stat-icon">👥</span>
+    <span class="stat-value">{{ total_customers if total_customers is not none else 0 }}</span>
+    <span class="stat-label">Total Customers</span>
+  </div>
+  <div class="stat-card teal">
+    <span class="stat-icon">🛒</span>
+    <span class="stat-value">{{ total_orders if total_orders is not none else 0 }}</span>
+    <span class="stat-label">Food Orders</span>
+  </div>
+  <div class="stat-card gold">
+    <span class="stat-icon">💰</span>
+    {% set safe_revenue = revenue if revenue is not none else 0 %}
+    <span class="stat-value">₹{{ "{:,.0f}".format(safe_revenue) }}</span>
+    <span class="stat-label">Paid Revenue</span>
+  </div>
+  {% else %}
+  <div class="stat-card pink">
+    <span class="stat-icon">🍽</span>
+    <span class="stat-value">{{ food_categories|length if food_categories is not none else 0 }}</span>
+    <span class="stat-label">Food Categories</span>
+  </div>
+  <div class="stat-card blue">
+    <span class="stat-icon">🏷</span>
+    <span class="stat-value">{{ room_types|length if room_types is not none else 0 }}</span>
+    <span class="stat-label">Room Types</span>
+  </div>
+  {% endif %}
+</div>
+
+{% if is_admin %}
+<!-- Analytics & Live Monitoring Row -->
+<div class="grid-2 mb-6">
+  <!-- Occupancy Grid & Goals -->
+  <div class="card card-premium">
+    <div class="card-header">
+      <span class="card-title">📊 Live Room Occupancy Map</span>
+    </div>
+    <div style="padding: 10px 0;">
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+        Visual map of all rooms in the hotel. Red rooms are currently occupied, green rooms are vacant.
+      </p>
+      
+      <div class="occupancy-grid">
+        {% for r in rooms or [] %}
+          {% if r.availability_status %}
+          <div class="occupancy-cell vacant" 
+               title="Room {{ r.room_number }} ({{ r.room_type }}) — Vacant">
+            {{ r.room_number }}
+          </div>
+          {% else %}
+          <div class="occupancy-cell occupied" 
+               title="Room {{ r.room_number }} ({{ r.room_type }}) — Occupied">
+            {{ r.room_number }}
+          </div>
+          {% endif %}
+        {% else %}
+          <div style="grid-column: span 5; text-align: center; color: var(--text-muted); padding: 10px 0;">
+            No rooms configured.
+          </div>
+        {% endfor %}
+      </div>
+
+      <div style="display: flex; gap: 15px; margin-top: 20px; font-size: 0.75rem;">
+        <span style="display: inline-flex; align-items: center; gap: 5px;">
+          <span style="display:inline-block; width:10px; height:10px; border-radius:3px; background:#43e97b;"></span> Vacant
+        </span>
+        <span style="display: inline-flex; align-items: center; gap: 5px;">
+          <span style="display:inline-block; width:10px; height:10px; border-radius:3px; background:#ff6584;"></span> Occupied
+        </span>
+      </div>
+
+      <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 15px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:600; margin-bottom:8px;">
+          <span>Monthly Revenue Target Goal</span>
+          {% set safe_revenue = revenue if revenue is not none else 0 %}
+          <span class="text-gold">₹{{ "{:,.0f}".format(safe_revenue) }} / ₹100,000</span>
+        </div>
+        <div class="progress-bar-container">
+          {% set progress_pct = (safe_revenue / 100000.0 * 100) | round(1) %}
+          {% set progress_pct = [progress_pct, 100]|min %}
+          <div class="progress-bar-fill" style="width: {{ progress_pct }}%; background: linear-gradient(90deg, var(--accent), var(--accent2));"></div>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; text-align: right;">
+          {{ progress_pct }}% of target reached
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Log / Timeline Feed -->
+  <div class="card card-premium">
+    <div class="card-header">
+      <span class="card-title">⚡ Live Activity Feed</span>
+    </div>
+    <div style="padding: 10px 0;">
+      <div class="activity-feed">
+        {% if recent_orders %}
+          {% for o in recent_orders[:3] or [] %}
+            <div class="activity-item">
+              <div class="activity-icon-box" style="color: var(--accent3);">🍽</div>
+              <div class="activity-info">
+                <div class="activity-text">
+                  Food order placed by <strong>Customer #{{ o.customer_id }}</strong> totaling <span class="text-gold">₹{{ "%.2f"|format(o.total_amount) if o.total_amount is not none else '0.00' }}</span>
+                </div>
+                <div class="activity-time">{{ o.order_time.strftime('%H:%M %p, %d-%m-%Y') if o.order_time else '' }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if recent_customers %}
+          {% for c in recent_customers[:2] or [] %}
+            <div class="activity-item">
+              <div class="activity-icon-box" style="color: var(--accent2);">👤</div>
+              <div class="activity-info">
+                <div class="activity-text">
+                  New customer <strong>{{ c.name if c.name is not none else 'Guest' }}</strong> registered in the database.
+                </div>
+                <div class="activity-time">{{ c.registered_on.strftime('%d-%m-%Y') if c.registered_on else '' }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if not recent_orders and not recent_customers %}
+          <div style="text-align: center; color: var(--text-muted); padding: 30px 0;">
+            No recent logs or operations recorded.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Info Tables Row -->
+<div class="grid-2 mb-6">
+  <div class="card card-premium">
+    <div class="card-header">
+      <span class="card-title">👤 Recent Customers</span>
+      <a href="{{ url_for('add_customer') }}" class="btn btn-primary btn-sm">+ Add Client</a>
+    </div>
+    {% if recent_customers %}
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Email</th>
+              <th>Phone</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in recent_customers or [] %}
+            <tr>
+              <td>
+                <div class="customer-avatar-row">
+                  <div class="customer-avatar">
+                    {{ c.name.split()[0][0] if (c.name and c.name.split()) else '' }}{{ c.name.split()[-1][0] if (c.name and c.name.split()|length != 1 and c.name.split()|length != 0) else '' }}
+                  </div>
+                  <div>
+                    <div style="font-weight: 700;">{{ c.name if c.name is not none else 'Guest' }}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">ID: #{{ c.customer_id }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="text-muted" style="font-size: 0.85rem;">{{ c.email if c.email is not none else '—' }}</td>
+              <td style="font-size: 0.85rem;">{{ c.phone if c.phone is not none else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state"><div class="empty-icon">👤</div>No customers yet.</div>
+    {% endif %}
+  </div>
+
+  <div class="card card-premium">
+    <div class="card-header">
+      <span class="card-title">🛒 Recent Orders</span>
+      <a href="{{ url_for('place_order') }}" class="btn btn-success btn-sm">+ New Order</a>
+    </div>
+    {% if recent_orders %}
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer ID</th>
+              <th>Total Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in recent_orders or [] %}
+            <tr>
+              <td><span class="badge badge-blue">#{{ o.order_id }}</span></td>
+              <td>Cust #{{ o.customer_id }}</td>
+              <td class="text-gold" style="font-weight: 700;">₹{{ "%.2f"|format(o.total_amount) if o.total_amount is not none else '0.00' }}</td>
+              <td>
+                {% if o.order_status == 'Confirmed' %}
+                <span class="badge badge-green">{{ o.order_status }}</span>
+                {% else %}
+                <span class="badge badge-red">{{ o.order_status }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state"><div class="empty-icon">🛒</div>No orders yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<!-- Welcome Banner for Regular Users -->
+<div class="card mb-6 card-premium" style="background: linear-gradient(135deg, rgba(108,99,255,0.08), rgba(255,101,132,0.05)); border: 1px solid rgba(108,99,255,0.2);">
+  <div style="padding: 10px 0;">
+    <h3 style="font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #fff, var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px;">Welcome to DineStay! 🏨✨</h3>
+    <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; margin-bottom: 20px;">
+      Explore our state-of-the-art hotel lodging options and culinary creations. 
+      Use the sidebar navigation to view our available rooms and browse the restaurant menu.
+    </p>
+    <div class="flex gap-3">
+      <a href="{{ url_for('rooms') }}" class="btn btn-primary" style="box-shadow: 0 4px 15px rgba(108,99,255,0.4);">🛌 Browse Rooms</a>
+      <a href="{{ url_for('menu') }}" class="btn btn-ghost">🍽 View Restaurant Menu</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Quick Info Grid -->
+<div class="grid-2">
+  <div class="card card-premium">
+    <div class="card-header"><span class="card-title">🏷 Available Room Types</span></div>
+    <div style="padding: 10px 0;">
+      <div class="flex gap-3" style="flex-wrap:wrap">
+        {% for t in room_types or [] %}
+          <span class="badge badge-purple" style="font-size: 0.8rem; padding: 6px 12px;">{{ t }} Suite</span>
+        {% endfor %}
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 15px; line-height: 1.5;">
+        DineStay premium rooms come with climate controls, electronic safes, complementary Wi-Fi, and smart entertainment hubs.
+      </p>
+    </div>
+  </div>
+  <div class="card card-premium">
+    <div class="card-header"><span class="card-title">🍽 Cuisines & Food Categories</span></div>
+    <div style="padding: 10px 0;">
+      <div class="flex gap-3" style="flex-wrap:wrap">
+        {% for c in food_categories or [] %}
+          <span class="badge badge-gold" style="font-size: 0.8rem; padding: 6px 12px;">{{ c }}</span>
+        {% endfor %}
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 15px; line-height: 1.5;">
+        Our restaurant offers multi-cuisine options ranging from breakfast starters to traditional main courses, desserts, and beverage choices.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

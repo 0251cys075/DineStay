@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Employees{% endblock %}
+{% block page_title %}Team Management{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">👥 DineStay Staff Registry</h2>
+  <a href="{{ url_for('add_employee') }}" class="btn btn-primary" style="box-shadow: 0 4px 15px rgba(108,99,255,0.4);">+ Add Staff Member</a>
+</div>
+
+{% if employees %}
+<div class="team-grid">
+  {% for e in employees %}
+    {% set details = emp_details.get(e.name) %}
+    
+    <div class="team-card card-premium">
+      <div class="team-avatar-box">
+        {% if details and details.image %}
+          <img src="{{ details.image }}" alt="{{ e.name }}" class="team-avatar"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="team-initials" style="display:none;">
+            {{ e.name.split()[0][0] if e.name.split() else '' }}{{ e.name.split()[-1][0] if e.name.split()|length > 1 else '' }}
+          </div>
+        {% else %}
+          <div class="team-initials">
+            {{ e.name.split()[0][0] if e.name.split() else '' }}{{ e.name.split()[-1][0] if e.name.split()|length > 1 else '' }}
+          </div>
+        {% endif %}
+      </div>
+
+      <h3 style="margin: 0 0 4px 0; font-weight: 800; font-size: 1.15rem;">{{ e.name }}</h3>
+      <span class="badge badge-purple" style="font-size: 0.7rem; font-weight: 700; margin-bottom: 12px; padding: 3px 8px;">
+        {{ e.designation }}
+      </span>
+
+      <!-- Contact details -->
+      <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px; margin-bottom: 15px; width: 100%; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+        <span>🏢 Dept: <strong>{{ e.department }}</strong></span>
+        <span>📞 {{ details.phone if (details and details.phone) else '+91 99999 88888' }}</span>
+        <span>✉️ {{ details.email if (details and details.email) else e.name.lower().replace(' ', '') ~ '@dinestay.com' }}</span>
+      </div>
+
+      <!-- Financial Metrics -->
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px;">
+        <div style="text-align: left;">
+          <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; display: block;">Monthly Salary</span>
+          <span style="font-size: 1.1rem; font-weight: 800; color: var(--accent3);">₹{{ "{:,.0f}".format(e.salary) }}</span>
+        </div>
+        <div style="text-align: right;">
+          <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; display: block;">Joined On</span>
+          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text);">{{ e.joined_on.strftime('%d-%b-%Y') }}</span>
+        </div>
+      </div>
+
+      <div style="width: 100%; display: flex; gap: 8px;">
+        <a href="{{ url_for('edit_employee', eid=e.employee_id) }}" class="btn btn-ghost btn-sm" style="width: 100%; justify-content: center; font-size: 0.8rem;">
+          Edit Profile
+        </a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card card-premium">
+  <div class="empty-state">
+    <div class="empty-icon">👤</div>
+    <p>No employees found in the staff registry.</p>
+    <a href="{{ url_for('add_employee') }}" class="btn btn-primary mt-4">Add First Staff Member</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

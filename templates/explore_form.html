@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Destination{% endblock %}
+{% block page_title %}{{ action }} Destination{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">🗺️ {{ action }} DineStay Destination</h2>
+  <a href="{{ url_for('explore') }}" class="btn btn-ghost">← Back to Explorer</a>
+</div>
+
+<div class="card" style="max-width:768px">
+  <form method="POST">
+    <div class="form-grid">
+      <!-- Destination Name -->
+      <div class="form-group" style="grid-column: 1/-1">
+        <label class="form-label">Destination Name</label>
+        <input class="form-control" type="text" name="name" required
+               value="{{ location.name if location else '' }}" placeholder="e.g. DineStay Royal Inn"/>
+      </div>
+      
+      <!-- City & Region -->
+      <div class="form-group">
+        <label class="form-label">City & Region</label>
+        <input class="form-control" type="text" name="city" required
+               value="{{ location.city if location else '' }}" placeholder="e.g. Pune, Maharashtra"/>
+      </div>
+
+      <!-- Tier Selection -->
+      <div class="form-group">
+        <label class="form-label">Tier / Class</label>
+        <select class="form-control" name="tier">
+          <option value="Luxury" {% if location and location.tier == 'Luxury' %}selected{% endif %}>Luxury</option>
+          <option value="Premium" {% if location and location.tier == 'Premium' %}selected{% endif %}>Premium</option>
+          <option value="Executive" {% if location and location.tier == 'Executive' %}selected{% endif %}>Executive</option>
+          <option value="Budget Friendly" {% if location and location.tier == 'Budget Friendly' %}selected{% endif %}>Budget Friendly</option>
+        </select>
+      </div>
+
+      <!-- Price Range -->
+      <div class="form-group">
+        <label class="form-label">Price Range Description</label>
+        <input class="form-control" type="text" name="price_range"
+               value="{{ location.price_range if location else '' }}" placeholder="e.g. ₹1,500 - ₹3,000 / night"/>
+      </div>
+
+      <!-- Facilities/Amenities -->
+      <div class="form-group">
+        <label class="form-label">Facilities (Comma separated)</label>
+        <input class="form-control" type="text" name="facilities"
+               value="{{ facilities_str if location else '' }}" placeholder="e.g. High-speed WiFi, Pool, Room Service"/>
+      </div>
+
+      <!-- Hotel Overview -->
+      <div class="form-group" style="grid-column: 1/-1">
+        <label class="form-label">Hotel Overview / Description</label>
+        <textarea class="form-control" name="description" rows="4" required placeholder="Write a brief overview describing the destination hotel..." style="resize:vertical;">{{ location.description if location else '' }}</textarea>
+      </div>
+
+      <!-- Restaurant Name -->
+      <div class="form-group">
+        <label class="form-label">Signature Restaurant Name</label>
+        <input class="form-control" type="text" name="restaurant_name"
+               value="{{ location.restaurant_name if location else '' }}" placeholder="e.g. Spicy Cumin"/>
+      </div>
+
+      <!-- Restaurant Rating -->
+      <div class="form-group">
+        <label class="form-label">Restaurant Rating (1.0 - 5.0)</label>
+        <input class="form-control" type="number" step="0.1" min="1" max="5" name="rating"
+               value="{{ location.rating if location else '4.5' }}" placeholder="e.g. 4.5"/>
+      </div>
+
+      <!-- Cuisine Type -->
+      <div class="form-group">
+        <label class="form-label">Cuisine Type</label>
+        <input class="form-control" type="text" name="cuisine"
+               value="{{ location.cuisine if location else '' }}" placeholder="e.g. Indian, Italian, Chinese"/>
+      </div>
+
+      <!-- Average Price -->
+      <div class="form-group">
+        <label class="form-label">Average Price Description</label>
+        <input class="form-control" type="text" name="avg_price"
+               value="{{ location.avg_price if location else '' }}" placeholder="e.g. ₹1,200 for two"/>
+      </div>
+
+      <!-- Restaurant Branches -->
+      <div class="form-group">
+        <label class="form-label">Restaurant Branches (Comma separated)</label>
+        <input class="form-control" type="text" name="branches"
+               value="{{ branches_str if location else '' }}" placeholder="e.g. Connaught Place, Whitefield"/>
+      </div>
+
+      <!-- Restaurant Details -->
+      <div class="form-group" style="grid-column: 1/-1">
+        <label class="form-label">Dining & Cuisine Description</label>
+        <textarea class="form-control" name="restaurant_description" rows="3" placeholder="Describe the restaurant, ambience, and signature dishes..." style="resize:vertical;">{{ location.restaurant_description if location else '' }}</textarea>
+      </div>
+
+      <!-- Room Ambience -->
+      <div class="form-group" style="grid-column: 1/-1">
+        <label class="form-label">Room Ambience Description</label>
+        <textarea class="form-control" name="room_ambience" rows="3" placeholder="Describe the room types, furnishings, bedding, and lodging experience..." style="resize:vertical;">{{ location.room_ambience if location else '' }}</textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-3 mt-6">
+      <button type="submit" class="btn btn-primary">{{ action }} Destination</button>
+      <a href="{{ url_for('explore') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

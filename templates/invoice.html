@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Invoice #{{ bill.bill_id }}{% endblock %}
+{% block page_title %}Invoice #{{ bill.bill_id }}{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">🧾 Invoice #{{ bill.bill_id }}</h2>
+  <div class="flex gap-3">
+    {% if not bill.is_paid %}
+    <form method="POST" action="{{ url_for('mark_paid', bid=bill.bill_id) }}">
+      <button type="submit" class="btn btn-success">💳 Mark as Paid</button>
+    </form>
+    {% endif %}
+    <a href="{{ url_for('billing') }}" class="btn btn-ghost">← Back</a>
+  </div>
+</div>
+
+<div class="invoice">
+  <div class="invoice-header">
+    <h2>🏨 DineStay</h2>
+    <p>Hotel & Restaurant Management System</p>
+    <p style="margin-top:8px;font-size:0.85rem;opacity:0.8">Invoice #{{ bill.bill_id }} — {{ bill.generated_on.strftime('%d %B %Y') }}</p>
+  </div>
+  <div class="invoice-body">
+    <div class="invoice-row">
+      <span class="text-muted">Customer Name</span>
+      <span><strong>{{ bill.customer_name }}</strong></span>
+    </div>
+    <div class="invoice-row">
+      <span class="text-muted">Customer ID</span>
+      <span>#{{ bill.customer_id }}</span>
+    </div>
+    <div class="invoice-row">
+      <span class="text-muted">Generated On</span>
+      <span>{{ bill.generated_on.strftime('%d %b %Y, %H:%M') }}</span>
+    </div>
+    <div class="invoice-row">
+      <span class="text-muted">Room Charges</span>
+      <span>₹{{ "%.2f"|format(bill.room_charges) }}</span>
+    </div>
+    <div class="invoice-row">
+      <span class="text-muted">Food & Beverage Charges</span>
+      <span>₹{{ "%.2f"|format(bill.food_charges) }}</span>
+    </div>
+    <div class="invoice-row">
+      <span class="text-muted">Subtotal</span>
+      <span>₹{{ "%.2f"|format(bill.room_charges + bill.food_charges) }}</span>
+    </div>
+    <div class="invoice-row">
+      <span class="text-muted">GST (18%)</span>
+      <span>₹{{ "%.2f"|format(bill.tax) }}</span>
+    </div>
+    <div class="invoice-row total">
+      <span>TOTAL AMOUNT</span>
+      <span>₹{{ "%.2f"|format(bill.total_amount) }}</span>
+    </div>
+    <div class="invoice-row" style="margin-top:12px">
+      <span class="text-muted">Payment Status</span>
+      <span>
+        <span class="badge {{ 'badge-green' if bill.is_paid else 'badge-red' }}">
+          {{ '✅ PAID' if bill.is_paid else '⏳ PENDING' }}
+        </span>
+      </span>
+    </div>
+  </div>
+  <div class="invoice-footer">
+    Thank you for staying at DineStay! We hope to see you again. 🏨
+  </div>
+</div>
+{% endblock %}

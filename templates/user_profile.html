@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block content %}
+<div style="max-width: 520px; margin: 0 auto;">
+
+  <!-- Header -->
+  <div class="section-header" style="margin-bottom: 28px;">
+    <div>
+      <h2 class="section-title" style="font-size: 1.5rem;">👤 My Profile</h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
+        Change your account password. You will be logged out after saving.
+      </p>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">← Back</a>
+  </div>
+
+  <!-- Identity card -->
+  <div class="card card-premium mb-6" style="border: 1px solid rgba(108,99,255,0.3); background: linear-gradient(135deg, rgba(108,99,255,0.08), rgba(167,139,250,0.04));">
+    <div style="display: flex; align-items: center; gap: 18px; padding: 6px 0;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #a78bfa); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+        👤
+      </div>
+      <div>
+        <div style="font-size: 1.1rem; font-weight: 800;">{{ current_user }}</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px;">Regular User · View-only access</div>
+        <span style="font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; background: rgba(108,99,255,0.15); color: #a78bfa; font-weight: 600; display: inline-block; margin-top: 8px;">🔵 User Role</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Form -->
+  <div class="card card-premium">
+    <div class="card-header" style="margin-bottom: 6px;">
+      <span class="card-title">🔑 Change Password</span>
+    </div>
+    <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5;">
+      Enter your current password and choose a new one (minimum 6 characters).
+      You will be logged out and must sign in again.
+    </p>
+
+    <form method="POST" id="user-pw-form" novalidate>
+      <!-- Current password -->
+      <div class="form-group">
+        <label class="form-label" for="old-pw">Current Password <span style="color:var(--accent2)">*</span></label>
+        <div style="position: relative;">
+          <input class="form-control" type="password" id="old-pw" name="old_password"
+                 placeholder="Enter your current password" required autocomplete="current-password"/>
+          <button type="button" onclick="togglePw('old-pw', this)"
+                  style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;">👁</button>
+        </div>
+      </div>
+
+      <!-- New password -->
+      <div class="form-group">
+        <label class="form-label" for="new-pw">New Password <span style="color:var(--accent2)">*</span></label>
+        <div style="position: relative;">
+          <input class="form-control" type="password" id="new-pw" name="new_password"
+                 placeholder="Min. 6 characters" required
+                 oninput="checkStrength(this.value); syncConfirm()"
+                 autocomplete="new-password"/>
+          <button type="button" onclick="togglePw('new-pw', this)"
+                  style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;">👁</button>
+        </div>
+        <!-- Strength bar -->
+        <div id="strength-wrap" style="margin-top: 6px; display: none;">
+          <div style="height: 4px; border-radius: 2px; background: var(--border); overflow: hidden;">
+            <div id="strength-bar" style="height:100%; width:0%; transition: width .3s, background .3s; border-radius: 2px;"></div>
+          </div>
+          <span id="strength-label" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; display: block;"></span>
+        </div>
+      </div>
+
+      <!-- Confirm new password -->
+      <div class="form-group">
+        <label class="form-label" for="confirm-pw">Confirm New Password <span style="color:var(--accent2)">*</span></label>
+        <div style="position: relative;">
+          <input class="form-control" type="password" id="confirm-pw" name="confirm_password"
+                 placeholder="Re-enter new password" required
+                 oninput="syncConfirm()" autocomplete="new-password"/>
+          <button type="button" onclick="togglePw('confirm-pw', this)"
+                  style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;">👁</button>
+        </div>
+        <div id="match-ind" style="font-size:0.72rem; margin-top:5px; display:none;"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:4px;">
+        🔑 Change Password &amp; Re-Login
+      </button>
+    </form>
+  </div>
+
+  <!-- Tips -->
+  <div class="card card-premium mt-6" style="border: 1px solid rgba(255,101,132,0.2); background: rgba(255,101,132,0.04);">
+    <div style="display: flex; gap: 14px; align-items: flex-start;">
+      <div style="font-size: 1.4rem; flex-shrink:0;">🛡️</div>
+      <div>
+        <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 8px;">Security Tips</div>
+        <ul style="font-size: 0.8rem; color: var(--text-muted); line-height: 2; padding-left: 16px;">
+          <li>Use at least 8 characters mixing uppercase, lowercase, numbers, and symbols.</li>
+          <li>Never share your password with anyone.</li>
+          <li>After changing your password you will be logged out automatically.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function togglePw(id, btn) {
+    const el = document.getElementById(id);
+    if (el.type === 'password') { el.type = 'text';     btn.textContent = '🙈'; }
+    else                        { el.type = 'password'; btn.textContent = '👁';  }
+  }
+
+  function checkStrength(val) {
+    const wrap  = document.getElementById('strength-wrap');
+    const bar   = document.getElementById('strength-bar');
+    const label = document.getElementById('strength-label');
+    if (!val) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+
+    let score = 0;
+    if (val.length >= 6)          score++;
+    if (val.length >= 10)         score++;
+    if (/[A-Z]/.test(val))        score++;
+    if (/[0-9]/.test(val))        score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+
+    const levels = [
+      { pct: '20%',  color: '#ff4d6d', text: '🔴 Very Weak'  },
+      { pct: '40%',  color: '#ff6584', text: '🟠 Weak'       },
+      { pct: '60%',  color: '#f5c842', text: '🟡 Fair'        },
+      { pct: '80%',  color: '#43e97b', text: '🟢 Strong'      },
+      { pct: '100%', color: '#00f5c4', text: '💪 Very Strong' },
+    ];
+    const lvl = levels[Math.min(score - 1, 4)] || levels[0];
+    bar.style.width      = lvl.pct;
+    bar.style.background = lvl.color;
+    label.textContent    = lvl.text;
+    label.style.color    = lvl.color;
+  }
+
+  function syncConfirm() {
+    const pw  = document.getElementById('new-pw').value;
+    const cfw = document.getElementById('confirm-pw').value;
+    const ind = document.getElementById('match-ind');
+    if (!cfw) { ind.style.display = 'none'; return; }
+    ind.style.display = 'block';
+    if (pw === cfw) {
+      ind.textContent = '✅ Passwords match';
+      ind.style.color = '#43e97b';
+    } else {
+      ind.textContent = '❌ Passwords do not match';
+      ind.style.color = '#ff6584';
+    }
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — DineStay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f1a; --card: #141726; --border: #252a45;
+      --accent: #6c63ff; --accent2: #ff6584; --text: #e8eaf6; --muted: #8892b0;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center;
+      padding: 20px; position: relative; overflow: hidden;
+    }
+    body::before, body::after {
+      content: ''; position: fixed; border-radius: 50%;
+      filter: blur(90px); opacity: 0.2;
+      animation: float 9s ease-in-out infinite; pointer-events: none;
+    }
+    body::before { width: 500px; height: 500px; background: radial-gradient(circle, #6c63ff, transparent); top: -160px; left: -100px; }
+    body::after  { width: 420px; height: 420px; background: radial-gradient(circle, #ff6584, transparent); bottom: -100px; right: -80px; animation-delay: -4.5s; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-25px)} }
+
+    .login-wrap {
+      width: 100%; max-width: 420px; z-index: 1;
+      animation: slideUp .4s ease;
+    }
+    @keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+    .brand { text-align: center; margin-bottom: 28px; }
+    .brand-icon { font-size: 2.8rem; display: block; margin-bottom: 8px; animation: pulse 2.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+    .brand-name {
+      font-size: 2rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .brand-sub { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0; background: #0d0f1a; border-radius: 12px 12px 0 0; overflow: hidden; border: 1px solid var(--border); border-bottom: none; }
+    .tab-btn {
+      flex: 1; padding: 14px; border: none; background: transparent;
+      color: var(--muted); font-family: inherit; font-size: 0.9rem;
+      font-weight: 600; cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .tab-btn.active { background: var(--card); color: var(--text); }
+    .tab-btn:first-child { border-right: 1px solid var(--border); }
+    .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.04); }
+
+    /* Card */
+    .login-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 0 0 20px 20px; padding: 32px 36px 36px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.55);
+    }
+
+    /* Role indicator */
+    .role-banner {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px; margin-bottom: 20px;
+      font-size: 0.82rem; font-weight: 600;
+    }
+    .role-user  { background: rgba(108,99,255,0.12); border: 1px solid rgba(108,99,255,0.25); color: #a78bfa; }
+    .role-admin { background: rgba(245,200,66,0.12); border: 1px solid rgba(245,200,66,0.25); color: #f5c842; }
+
+    /* Flash */
+    .flash { padding: 11px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 500; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .flash-error   { background: rgba(255,101,132,0.12); border: 1px solid rgba(255,101,132,0.3); color: #ff6584; }
+    .flash-success { background: rgba(67,233,123,0.12);  border: 1px solid rgba(67,233,123,0.3);  color: #43e97b; }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.76rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px; }
+    .form-control {
+      width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 9px; padding: 11px 15px; color: var(--text);
+      font-size: 0.93rem; font-family: inherit;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,.15); }
+    .form-control::placeholder { color: var(--muted); }
+
+    .btn-submit {
+      width: 100%; padding: 13px; border: none; border-radius: 9px;
+      color: #fff; font-size: 0.97rem; font-weight: 700; cursor: pointer;
+      font-family: inherit; margin-top: 6px; transition: all .2s; letter-spacing: .02em;
+    }
+    .btn-user  { background: linear-gradient(135deg, var(--accent), #a78bfa); }
+    .btn-admin { background: linear-gradient(135deg, #f5c842, #fb923c); color: #1a1200; }
+    .btn-submit:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+
+    /* Divider */
+    .divider { display: flex; align-items: center; gap: 10px; margin: 18px 0; }
+    .divider hr { flex: 1; border: none; border-top: 1px solid var(--border); }
+    .divider span { font-size: 0.75rem; color: var(--muted); }
+
+    .signup-link { text-align: center; font-size: 0.85rem; color: var(--muted); }
+    .signup-link a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .signup-link a:hover { text-decoration: underline; }
+
+    .lock-note { text-align: center; font-size: 0.74rem; color: var(--muted); margin-top: 20px; }
+
+    /* Remember Me */
+    .remember-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 12px 0 6px; font-size: 0.82rem; color: var(--muted);
+    }
+    .remember-row label { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+    .remember-row input[type=checkbox] {
+      width: 15px; height: 15px; accent-color: var(--accent);
+      cursor: pointer; border-radius: 3px;
+    }
+
+    /* Tab panels */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body>
+<div class="login-wrap">
+
+  <!-- Brand -->
+  <div class="brand">
+    <span class="brand-icon">🏨</span>
+    <div class="brand-name">DineStay</div>
+    <div class="brand-sub">Hotel & Restaurant Management System</div>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          <span>{{ '✅' if category == 'success' else '⚠️' }}</span>
+          <span>{{ message }}</span>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-user-btn" onclick="switchTab('user')">
+      👤 User Login
+    </button>
+    <button class="tab-btn" id="tab-admin-btn" onclick="switchTab('admin')">
+      🔑 Admin Login
+    </button>
+  </div>
+
+  <div class="login-card">
+
+    <!-- USER LOGIN PANEL -->
+    <div class="tab-panel active" id="panel-user">
+      <div class="role-banner role-user">
+        👤 &nbsp;Logging in as a <strong>Regular User</strong> — view-only access
+      </div>
+      <form method="POST">
+        <input type="hidden" name="login_type" value="user"/>
+        <div class="form-group">
+          <label class="form-label" for="user-username">Username</label>
+          <input class="form-control" type="text" id="user-username" name="username"
+                 placeholder="Your username" required autofocus/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="user-password">Password</label>
+          <input class="form-control" type="password" id="user-password" name="password"
+                 placeholder="Your password" required/>
+        </div>
+        <div class="remember-row">
+          <label>
+            <input type="checkbox" name="remember_me" id="user-remember"/>
+            Remember me for 30 days
+          </label>
+        </div>
+        <button class="btn-submit btn-user" type="submit">🚀 Sign In</button>
+      </form>
+      <div class="divider"><hr/><span>New here?</span><hr/></div>
+      <div class="signup-link">
+        Don't have an account?
+        <a href="{{ url_for('signup') }}">Create one free →</a>
+      </div>
+    </div>
+
+    <!-- ADMIN LOGIN PANEL -->
+    <div class="tab-panel" id="panel-admin">
+      <div class="role-banner role-admin">
+        🔑 &nbsp;Logging in as <strong>Admin</strong> — full management access
+      </div>
+      <form method="POST">
+        <input type="hidden" name="login_type" value="admin"/>
+        <div class="form-group">
+          <label class="form-label" for="admin-username">Admin Username</label>
+          <input class="form-control" type="text" id="admin-username" name="username"
+                 placeholder="Admin username" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="admin-password">Admin Password</label>
+          <input class="form-control" type="password" id="admin-password" name="password"
+                 placeholder="Admin password" required/>
+        </div>
+        <div class="remember-row">
+          <label>
+            <input type="checkbox" name="remember_me" id="admin-remember"/>
+            Remember me for 30 days
+          </label>
+        </div>
+        <button class="btn-submit btn-admin" type="submit">🔐 Admin Sign In</button>
+      </form>
+    </div>
+
+  </div><!-- /login-card -->
+
+  <div class="lock-note">🔒 Secure login — your data is protected</div>
+
+</div><!-- /login-wrap -->
+
+<script>
+  function switchTab(tab) {
+    document.getElementById('panel-user').classList.toggle('active', tab === 'user');
+    document.getElementById('panel-admin').classList.toggle('active', tab === 'admin');
+    document.getElementById('tab-user-btn').classList.toggle('active', tab === 'user');
+    document.getElementById('tab-admin-btn').classList.toggle('active', tab === 'admin');
+  }
+</script>
+</body>
+</html>

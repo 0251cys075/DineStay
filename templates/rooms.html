@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Rooms{% endblock %}
+{% block page_title %}Lodging & Rooms{% endblock %}
+
+{% block content %}
+<div class="section-header" style="margin-bottom: 28px;">
+  <div>
+    <h2 class="section-title" style="font-size: 1.5rem;">🛏 Hospitality Lodging Grid</h2>
+    <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 4px;">
+      {{ rooms|length }} rooms · {{ rooms|selectattr('availability_status')|list|length }} available
+    </p>
+  </div>
+  <div class="flex gap-3">
+    {% if is_admin %}
+      <a href="{{ url_for('add_room') }}" class="btn btn-primary" style="box-shadow: 0 4px 15px rgba(108,99,255,0.4);">+ Add Room</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Room Tier Filter -->
+<div class="card card-premium mb-6" style="padding: 14px 20px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div style="font-size:0.85rem; color:var(--text-muted);">Filter by Room Tier:</div>
+    <div class="flex gap-2">
+      <button class="btn btn-primary btn-sm" onclick="filterRooms('all', this)">All Rooms</button>
+      {% for t in room_types %}
+        <button class="btn btn-ghost btn-sm" onclick="filterRooms('{{ t }}', this)">{{ t }}</button>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% if rooms %}
+<div class="food-showcase-grid" id="roomsGrid">
+  {% for room in rooms %}
+    {# Pick the correct image URL per room type — fall back to default #}
+    {% set room_img = room_image_urls.get(room.room_type, default_room_img) %}
+    {% set details  = room_details.get(room.room_type, {'description': 'A comfortable hotel room with premium amenities.'}) %}
+
+    <div class="food-card card-premium room-item-card" data-tier="{{ room.room_type }}">
+      <!-- Room Image with overlay badges -->
+      <div class="food-card-img-container">
+        <img src="{{ room_img }}" alt="{{ room.room_type }} Room — Suite {{ room.room_number }}"
+             class="food-card-img" loading="lazy"
+             onerror="this.src='{{ default_room_img }}'">
+        <div class="img-overlay-gradient"></div>
+        <div class="food-card-badge-container">
+          <!-- Tier badge -->
+          {% if room.room_type == 'Deluxe' %}
+            <span class="badge-solid badge-solid-gold">👑 {{ room.room_type }} Tier</span>
+          {% elif room.room_type == 'Presidential' %}
+            <span class="badge-solid" style="background:rgba(168,85,247,0.9); color:#fff;">💎 Presidential</span>
+          {% else %}
+            <span class="badge-solid badge-solid-purple">🛏 {{ room.room_type }} Tier</span>
+          {% endif %}
+          <!-- Availability badge -->
+          {% if room.availability_status %}
+            <span class="badge-solid badge-solid-veg">🟢 Available</span>
+          {% else %}
+            <span class="badge-solid badge-solid-nonveg">🔴 Booked</span>
+          {% endif %}
+        </div>
+        <!-- Price tag on image bottom-right -->
+        <div style="position:absolute; bottom:12px; right:12px; background:rgba(13,15,26,0.85);
+                    border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:4px 10px; backdrop-filter:blur(4px);">
+          <span style="font-size:0.65rem; color:var(--text-muted); display:block; text-align:right; line-height:1;">Per Night</span>
+          <span style="font-size:1rem; font-weight:800; color:var(--accent3);">₹{{ "{:,.0f}".format(room.room_price) }}</span>
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="food-card-body">
+        <div class="food-card-title-row">
+          <span class="food-card-title" style="font-size: 1.1rem;">Suite {{ room.room_number }}</span>
+          {% if not room.availability_status and room.booked_by %}
+            <span class="badge badge-blue" style="font-size:0.68rem;">Cust #{{ room.booked_by }}</span>
+          {% endif %}
+        </div>
+
+        <p class="food-card-desc" style="height: auto; -webkit-line-clamp: 2; margin-bottom: 12px;">
+          {{ details.description }}
+        </p>
+
+        <!-- Amenities -->
+        <div class="flex gap-2 mb-3" style="flex-wrap: wrap;">
+          <span class="badge badge-purple" style="font-size:0.65rem;">📶 Wi-Fi</span>
+          <span class="badge badge-purple" style="font-size:0.65rem;">📺 Smart TV</span>
+          {% if room.room_type == "Deluxe" or room.room_type == "Presidential" %}
+            <span class="badge badge-gold" style="font-size:0.65rem; color:var(--gold);">🍹 Mini-Bar</span>
+            <span class="badge badge-gold" style="font-size:0.65rem; color:var(--gold);">🛀 Bath Tub</span>
+          {% else %}
+            <span class="badge badge-purple" style="font-size:0.65rem;">💼 Work Desk</span>
+            <span class="badge badge-purple" style="font-size:0.65rem;">❄️ AC</span>
+          {% endif %}
+          {% if room.room_type == "Presidential" %}
+            <span class="badge" style="font-size:0.65rem; background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3);">🏊 Pool Access</span>
+          {% endif %}
+        </div>
+
+        <!-- Booking date if occupied -->
+        {% if room.check_in_date and room.check_out_date %}
+          <div style="background:rgba(255,101,132,0.07); border:1px solid rgba(255,101,132,0.2);
+                      padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:0.75rem;">
+            <div style="color:var(--text-muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:.05em;">Reservation</div>
+            <div style="font-weight:600; margin-top:2px; color:var(--text);">
+              📅 {{ room.check_in_date.strftime('%d %b %Y') }} → {{ room.check_out_date.strftime('%d %b %Y') }}
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="food-card-footer">
+          <div>
+            <span style="font-size:0.68rem; color:var(--text-muted); display:block;">Rate / Night</span>
+            <span class="food-card-price" style="font-size:1.25rem;">₹{{ "{:,.0f}".format(room.room_price) }}</span>
+          </div>
+          <div class="flex gap-2" style="align-items:center;">
+            <a href="{{ url_for('room_details', room_number=room.room_number) }}" class="btn btn-ghost btn-sm">Details</a>
+            {% if not room.availability_status and is_admin %}
+              <form method="POST" action="{{ url_for('checkout_room', room_number=room.room_number) }}" style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Check Out</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="card card-premium">
+  <div class="empty-state">
+    <div class="empty-icon">🛏</div>
+    <p>No guest suites added yet.</p>
+    {% if is_admin %}
+      <a href="{{ url_for('add_room') }}" class="btn btn-primary mt-4">Add First Suite</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<script>
+  function filterRooms(tier, buttonEl) {
+    document.querySelectorAll(buttonEl.parentElement.querySelectorAll ? '#roomsGrid' : '.room-item-card').length;
+    buttonEl.parentElement.querySelectorAll('button').forEach(btn => btn.className = 'btn btn-ghost btn-sm');
+    buttonEl.className = 'btn btn-primary btn-sm';
+    document.querySelectorAll('.room-item-card').forEach(card => {
+      card.style.display = (tier === 'all' || card.getAttribute('data-tier') === tier) ? 'flex' : 'none';
+    });
+  }
+</script>
+{% endblock %}

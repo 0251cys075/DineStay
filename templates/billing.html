@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Billing{% endblock %}
+{% block page_title %}Billing Management{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">💰 All Bills</h2>
+  <a href="{{ url_for('generate_bill') }}" class="btn btn-primary">+ Generate Bill</a>
+</div>
+<div class="card">
+  {% if bills %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>Bill#</th><th>Customer</th><th>Room ₹</th><th>Food ₹</th><th>GST ₹</th><th>Total ₹</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for b in bills %}
+        <tr>
+          <td><span class="badge badge-gold">#{{ b.bill_id }}</span></td>
+          <td>{{ b.customer_name }}<br><span class="text-muted" style="font-size:0.75rem">ID #{{ b.customer_id }}</span></td>
+          <td>₹{{ "%.0f"|format(b.room_charges) }}</td>
+          <td>₹{{ "%.0f"|format(b.food_charges) }}</td>
+          <td class="text-muted">₹{{ "%.0f"|format(b.tax) }}</td>
+          <td class="text-gold"><strong>₹{{ "%.2f"|format(b.total_amount) }}</strong></td>
+          <td class="text-muted">{{ b.generated_on.strftime('%d %b %Y') }}</td>
+          <td>
+            <span class="badge {{ 'badge-green' if b.is_paid else 'badge-red' }}">
+              {{ '✅ Paid' if b.is_paid else '⏳ Pending' }}
+            </span>
+          </td>
+          <td>
+            <div class="flex gap-3">
+              <a href="{{ url_for('view_bill', bid=b.bill_id) }}" class="btn btn-ghost btn-sm">Invoice</a>
+              {% if not b.is_paid %}
+              <form method="POST" action="{{ url_for('mark_paid', bid=b.bill_id) }}" style="display:inline">
+                <button type="submit" class="btn btn-success btn-sm">Mark Paid</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">💰</div>
+    <p>No bills generated yet.</p>
+    <a href="{{ url_for('generate_bill') }}" class="btn btn-primary mt-4">Generate First Bill</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

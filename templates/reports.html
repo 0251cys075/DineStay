@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">📊 Analytics Dashboard</h2>
+</div>
+
+<!-- Revenue & Operational Cards -->
+<div class="stats-grid mb-6">
+  <div class="stat-card gold card-premium">
+    <span class="stat-icon">💰</span>
+    <span class="stat-value">₹{{ "{:,.0f}".format(revenue) }}</span>
+    <span class="stat-label">Total Revenue</span>
+  </div>
+  <div class="stat-card purple card-premium">
+    <span class="stat-icon">🏨</span>
+    <span class="stat-value">₹{{ "{:,.0f}".format(room_revenue) }}</span>
+    <span class="stat-label">Room Lodging Revenue</span>
+  </div>
+  <div class="stat-card green card-premium">
+    <span class="stat-icon">🍽</span>
+    <span class="stat-value">₹{{ "{:,.0f}".format(food_revenue) }}</span>
+    <span class="stat-label">Restaurant Revenue</span>
+  </div>
+  <div class="stat-card pink card-premium">
+    <span class="stat-icon">⏳</span>
+    <span class="stat-value">{{ unpaid_bills|length }}</span>
+    <span class="stat-label">Pending Invoices</span>
+  </div>
+  <div class="stat-card blue card-premium">
+    <span class="stat-icon">✅</span>
+    <span class="stat-value">{{ paid_bills|length }}</span>
+    <span class="stat-label">Paid Invoices</span>
+  </div>
+  <div class="stat-card teal card-premium">
+    <span class="stat-icon">🛒</span>
+    <span class="stat-value">{{ confirmed_orders|length }}</span>
+    <span class="stat-label">Active Orders</span>
+  </div>
+</div>
+
+<!-- Revenue Contribution Chart and Export Center -->
+<div class="grid-2 mb-6">
+  <!-- Revenue Split visualization -->
+  <div class="card card-premium">
+    <div class="card-header"><span class="card-title">📈 Revenue Breakdown</span></div>
+    <div style="padding: 10px 0;">
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">
+        Comparison of lodging sales vs restaurant sales in absolute amounts.
+      </p>
+      
+      <!-- Room Lodging vs Food Restaurant Share -->
+      {% set total_sales = room_revenue + food_revenue %}
+      {% if total_sales > 0 %}
+        {% set room_pct = (room_revenue / total_sales * 100) | round(1) %}
+        {% set food_pct = (food_revenue / total_sales * 100) | round(1) %}
+      {% else %}
+        {% set room_pct = 50.0 %}
+        {% set food_pct = 50.0 %}
+      {% endif %}
+      
+      <div style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:5px;">
+          <span>🛌 Lodging Revenue Share ({{ room_pct }}%)</span>
+          <span style="font-weight:700; color:var(--accent2)">₹{{ "{:,.2f}".format(room_revenue) }}</span>
+        </div>
+        <div class="progress-bar-container" style="background: rgba(255,255,255,0.05); height: 10px;">
+          <div class="progress-bar-fill" style="width: {{ room_pct }}%; background: linear-gradient(90deg, var(--accent), var(--accent2));"></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 10px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:5px;">
+          <span>🍽 Restaurant Revenue Share ({{ food_pct }}%)</span>
+          <span style="font-weight:700; color:var(--accent3)">₹{{ "{:,.2f}".format(food_revenue) }}</span>
+        </div>
+        <div class="progress-bar-container" style="background: rgba(255,255,255,0.05); height: 10px;">
+          <div class="progress-bar-fill" style="width: {{ food_pct }}%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Export & PDF Center -->
+  <div class="card card-premium">
+    <div class="card-header"><span class="card-title">📥 Report Export Center</span></div>
+    <div style="padding: 5px 0;">
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+        Generate and download official CSV sheets or print formatted PDF summaries.
+      </p>
+      
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- Row 1: Revenue -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(13,15,26,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px;">
+          <span style="font-size: 0.85rem; font-weight: 600;">💰 Revenue & Payments</span>
+          <div class="flex gap-2">
+            <a href="{{ url_for('export_report', report_type='revenue') }}" class="btn btn-ghost btn-sm" style="font-size:0.7rem; padding: 4px 8px;">📥 CSV</a>
+            <a href="{{ url_for('print_report', report_type='revenue') }}" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.7rem; padding: 4px 8px; box-shadow:none;">🖨 Print / PDF</a>
+          </div>
+        </div>
+
+        <!-- Row 2: Bookings -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(13,15,26,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px;">
+          <span style="font-size: 0.85rem; font-weight: 600;">🗓 Suite Reservations</span>
+          <div class="flex gap-2">
+            <a href="{{ url_for('export_report', report_type='bookings') }}" class="btn btn-ghost btn-sm" style="font-size:0.7rem; padding: 4px 8px;">📥 CSV</a>
+            <a href="{{ url_for('print_report', report_type='bookings') }}" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.7rem; padding: 4px 8px; box-shadow:none;">🖨 Print / PDF</a>
+          </div>
+        </div>
+
+        <!-- Row 3: Customers -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(13,15,26,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px;">
+          <span style="font-size: 0.85rem; font-weight: 600;">👥 Customers Registry</span>
+          <div class="flex gap-2">
+            <a href="{{ url_for('export_report', report_type='customers') }}" class="btn btn-ghost btn-sm" style="font-size:0.7rem; padding: 4px 8px;">📥 CSV</a>
+            <a href="{{ url_for('print_report', report_type='customers') }}" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.7rem; padding: 4px 8px; box-shadow:none;">🖨 Print / PDF</a>
+          </div>
+        </div>
+
+        <!-- Row 4: Occupancy -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(13,15,26,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px;">
+          <span style="font-size: 0.85rem; font-weight: 600;">📊 Live Room Occupancy</span>
+          <div class="flex gap-2">
+            <a href="{{ url_for('export_report', report_type='occupancy') }}" class="btn btn-ghost btn-sm" style="font-size:0.7rem; padding: 4px 8px;">📥 CSV</a>
+            <a href="{{ url_for('print_report', report_type='occupancy') }}" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.7rem; padding: 4px 8px; box-shadow:none;">🖨 Print / PDF</a>
+          </div>
+        </div>
+
+        <!-- Row 5: Food Orders -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(13,15,26,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px;">
+          <span style="font-size: 0.85rem; font-weight: 600;">🛒 Kitchen Orders Log</span>
+          <div class="flex gap-2">
+            <a href="{{ url_for('export_report', report_type='orders') }}" class="btn btn-ghost btn-sm" style="font-size:0.7rem; padding: 4px 8px;">📥 CSV</a>
+            <a href="{{ url_for('print_report', report_type='orders') }}" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.7rem; padding: 4px 8px; box-shadow:none;">🖨 Print / PDF</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Room Occupancy Table -->
+  <div class="card card-premium">
+    <div class="card-header"><span class="card-title">🛏 Suite Occupancy List</span></div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Room Number</th>
+            <th>Room Tier</th>
+            <th>Price / Night</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in hotel.rooms %}
+          <tr>
+            <td><strong>Room {{ r.room_number }}</strong></td>
+            <td>{{ r.room_type }}</td>
+            <td class="text-gold" style="font-weight: 700;">₹{{ "{:,.2f}".format(r.room_price) }}</td>
+            <td>
+              <span class="badge {{ 'badge-green' if r.availability_status else 'badge-red' }}">
+                {{ 'Vacant' if r.availability_status else 'Occupied' }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 15px;">
+      Total Suites: <strong>{{ hotel.rooms|length }}</strong> | Vacant: <strong class="text-green">{{ available_rooms|length }}</strong> | Booked: <strong style="color:var(--accent2)">{{ booked_rooms|length }}</strong>
+    </div>
+  </div>
+
+  <!-- Employee Salary Summary Table -->
+  <div class="card card-premium">
+    <div class="card-header"><span class="card-title">👤 Employee Payroll Log</span></div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Staff Member</th>
+            <th>Department</th>
+            <th class="text-right">Monthly Payroll</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in hotel.employees|sort(attribute='salary', reverse=True) %}
+          <tr>
+            <td><strong>{{ e.name }}</strong></td>
+            <td><span class="badge badge-blue">{{ e.department }}</span></td>
+            <td class="text-right text-gold" style="font-weight: 700;">₹{{ "{:,.2f}".format(e.salary) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if hotel.employees %}
+    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 15px; text-align: right;">
+      Total Team Payroll: <strong class="text-gold">₹{{ "{:,.2f}".format(hotel.employees|sum(attribute='salary')) }} / month</strong>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Recent Bills table -->
+{% if hotel.bills %}
+<div class="card card-premium mt-6">
+  <div class="card-header">
+    <span class="card-title">💰 Recent Generated Invoices</span>
+    <a href="{{ url_for('billing') }}" class="btn btn-ghost btn-sm">View All Invoices</a>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Bill ID</th>
+          <th>Guest Customer</th>
+          <th>Total Invoice Amount</th>
+          <th>Payment Status</th>
+          <th>Generated Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in hotel.bills[-8:]|reverse %}
+        <tr>
+          <td><span class="badge badge-gold">#{{ b.bill_id }}</span></td>
+          <td><strong>{{ b.customer_name }}</strong></td>
+          <td class="text-gold" style="font-weight: 700;">₹{{ "%.2f"|format(b.total_amount) }}</td>
+          <td>
+            <span class="badge {{ 'badge-green' if b.is_paid else 'badge-red' }}">
+              {{ 'Paid' if b.is_paid else 'Pending' }}
+            </span>
+          </td>
+          <td class="text-muted" style="font-size: 0.85rem;">{{ b.generated_on.strftime('%d-%b-%Y') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DineStay Print Report — {{ report_type.capitalize() }}</title>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #1a1a1a;
+      background: #ffffff;
+      margin: 40px;
+      padding: 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .print-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #333;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .brand {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0d0f1a;
+    }
+    .report-info {
+      text-align: right;
+    }
+    .report-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 5px 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .report-date {
+      color: #666;
+      font-size: 12px;
+    }
+    .stats-summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .stat-box {
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    .stat-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: #000;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+    th, td {
+      border-bottom: 1px solid #ddd;
+      padding: 12px 10px;
+      text-align: left;
+    }
+    th {
+      font-weight: 600;
+      background: #f1f5f9;
+      color: #334155;
+    }
+    .text-right {
+      text-align: right;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    .badge-paid {
+      background: #e2fbf0;
+      color: #0d5f3a;
+      border-color: #a7f3d0;
+    }
+    .badge-pending {
+      background: #fffbeb;
+      color: #92400e;
+      border-color: #fde68a;
+    }
+    .print-footer {
+      position: fixed;
+      bottom: 20px;
+      left: 40px;
+      right: 40px;
+      text-align: center;
+      font-size: 11px;
+      color: #888;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+    .no-print-bar {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 15px 20px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .btn {
+      background: #6c63ff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .btn-secondary {
+      background: #cbd5e1;
+      color: #334155;
+      margin-left: 10px;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-block;
+    }
+    @media print {
+      .no-print-bar {
+        display: none !important;
+      }
+      body {
+        margin: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Controls visible only in browser, hidden when printed -->
+  <div class="no-print-bar">
+    <div>
+      <strong>Print Preview</strong> — Press the print button to save as PDF or print.
+    </div>
+    <div>
+      <button class="btn" onclick="window.print()">Print Document</button>
+      <a href="{{ url_for('reports') }}" class="btn-secondary">Back to Reports</a>
+    </div>
+  </div>
+
+  <div class="print-header">
+    <div class="brand">🏨 DineStay</div>
+    <div class="report-info">
+      <h2 class="report-title">{{ report_type.capitalize() }} Report</h2>
+      <div class="report-date">Generated on: {{ datetime.now().strftime('%d-%m-%Y %H:%M:%S') }}</div>
+    </div>
+  </div>
+
+  <!-- Dynamic Stats Summary based on report type -->
+  {% if report_type == "revenue" %}
+    <div class="stats-summary">
+      <div class="stat-box">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-val">₹{{ "{:,.2f}".format(revenue) }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Room Revenue</div>
+        <div class="stat-val">₹{{ "{:,.2f}".format(room_revenue) }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Food Revenue</div>
+        <div class="stat-val">₹{{ "{:,.2f}".format(food_revenue) }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Paid Invoices</div>
+        <div class="stat-val">{{ paid_bills|length }}</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Bill ID</th>
+          <th>Customer ID</th>
+          <th>Customer Name</th>
+          <th class="text-right">Room Charges</th>
+          <th class="text-right">Food Charges</th>
+          <th class="text-right">GST</th>
+          <th class="text-right">Total Amount</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in paid_bills %}
+        <tr>
+          <td>#{{ b.bill_id }}</td>
+          <td>#{{ b.customer_id }}</td>
+          <td><strong>{{ b.customer_name }}</strong></td>
+          <td class="text-right">₹{{ "%.2f"|format(b.room_charges) }}</td>
+          <td class="text-right">₹{{ "%.2f"|format(b.food_charges) }}</td>
+          <td class="text-right">₹{{ "%.2f"|format(b.tax) }}</td>
+          <td class="text-right"><strong>₹{{ "%.2f"|format(b.total_amount) }}</strong></td>
+          <td><span class="badge badge-paid">Paid</span></td>
+          <td>{{ b.generated_on.strftime('%d-%m-%Y') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% elif report_type == "bookings" %}
+    <div class="stats-summary">
+      <div class="stat-box">
+        <div class="stat-label">Total Rooms</div>
+        <div class="stat-val">{{ hotel.rooms|length }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Booked Rooms</div>
+        <div class="stat-val">{{ booked_rooms|length }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Available Rooms</div>
+        <div class="stat-val">{{ available_rooms|length }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Occupancy Rate</div>
+        <div class="stat-val">
+          {% if hotel.rooms %}
+            {{ "%.1f"|format((booked_rooms|length / hotel.rooms|length) * 100) }}%
+          {% else %}
+            0%
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Room Number</th>
+          <th>Room Type</th>
+          <th class="text-right">Price per Night</th>
+          <th>Status</th>
+          <th>Booked By (Cust ID)</th>
+          <th>Check-in Date</th>
+          <th>Check-out Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in hotel.rooms %}
+        <tr>
+          <td><strong>Room {{ r.room_number }}</strong></td>
+          <td>{{ r.room_type }}</td>
+          <td class="text-right">₹{{ "%.2f"|format(r.room_price) }}</td>
+          <td>
+            {% if r.availability_status %}
+              <span class="badge badge-paid" style="background:#e0f2fe;color:#0369a1;border-color:#bae6fd">Available</span>
+            {% else %}
+              <span class="badge badge-pending">Booked</span>
+            {% endif %}
+          </td>
+          <td>{{ r.booked_by if r.booked_by else '—' }}</td>
+          <td>{{ r.check_in_date.strftime('%d-%m-%Y') if r.check_in_date else '—' }}</td>
+          <td>{{ r.check_out_date.strftime('%d-%m-%Y') if r.check_out_date else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% elif report_type == "customers" %}
+    <div class="stats-summary">
+      <div class="stat-box">
+        <div class="stat-label">Total Registered Customers</div>
+        <div class="stat-val">{{ hotel.customers|length }}</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Customer ID</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Registered On</th>
+          <th class="text-right">Total Bookings</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in hotel.customers %}
+        <tr>
+          <td>#{{ c.customer_id }}</td>
+          <td><strong>{{ c.name }}</strong></td>
+          <td>{{ c.phone }}</td>
+          <td>{{ c.email }}</td>
+          <td>{{ c.registered_on.strftime('%d-%m-%Y') }}</td>
+          <td class="text-right">{{ c.booking_history|length }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% elif report_type == "occupancy" %}
+    <div class="stats-summary">
+      <div class="stat-box">
+        <div class="stat-label">Total Rooms</div>
+        <div class="stat-val">{{ hotel.rooms|length }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Occupied Rooms</div>
+        <div class="stat-val">{{ booked_rooms|length }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Vacant Rooms</div>
+        <div class="stat-val">{{ available_rooms|length }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Occupancy Rate</div>
+        <div class="stat-val">
+          {% if hotel.rooms %}
+            {{ "%.1f"|format((booked_rooms|length / hotel.rooms|length) * 100) }}%
+          {% else %}
+            0%
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Room Number</th>
+          <th>Room Type</th>
+          <th class="text-right">Price</th>
+          <th>Occupancy Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in hotel.rooms %}
+        <tr>
+          <td><strong>Room {{ r.room_number }}</strong></td>
+          <td>{{ r.room_type }}</td>
+          <td class="text-right">₹{{ "%.2f"|format(r.room_price) }}</td>
+          <td>
+            {% if r.availability_status %}
+              <span class="badge badge-paid" style="background:#e0f2fe;color:#0369a1;border-color:#bae6fd">Vacant</span>
+            {% else %}
+              <span class="badge badge-pending" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5">Occupied</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% elif report_type == "orders" %}
+    <div class="stats-summary">
+      <div class="stat-box">
+        <div class="stat-label">Total Food Orders</div>
+        <div class="stat-val">{{ hotel.orders|length }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Confirmed Orders</div>
+        <div class="stat-val">{{ confirmed_orders|length }}</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer ID</th>
+          <th>Items Ordered</th>
+          <th class="text-right">Total Amount</th>
+          <th>Status</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in hotel.orders %}
+        <tr>
+          <td>#{{ o.order_id }}</td>
+          <td>#{{ o.customer_id }}</td>
+          <td>
+            {% for fi, qty in o.ordered_items %}
+              {{ fi.food_name }} (x{{ qty }}){% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </td>
+          <td class="text-right"><strong>₹{{ "%.2f"|format(o.total_amount) }}</strong></td>
+          <td>
+            <span class="badge {% if o.order_status == 'Confirmed' %}badge-paid{% else %}badge-pending{% endif %}">
+              {{ o.order_status }}
+            </span>
+          </td>
+          <td>{{ o.order_time.strftime('%d-%m-%Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  <div class="print-footer">
+    DineStay Professional Hospitality Systems • Confidential Printout
+  </div>
+
+  <script>
+    // Trigger print dialog automatically after page loads
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}User Manager{% endblock %}
+{% block page_title %}Registered Users (Admin Only){% endblock %}
+{% block content %}
+<div class="section-header">
+  <div>
+    <h2 class="section-title">🛡 Registered Users</h2>
+    <p class="text-muted mt-2">All users who signed up via the public page. Changes persist permanently.</p>
+  </div>
+</div>
+
+<div class="info-banner mb-6" style="background:rgba(245,200,66,0.1); border:1px solid rgba(245,200,66,0.22); border-radius:8px; padding:12px 16px; font-size:0.85rem; color:#f5c842; display:flex; align-items:flex-start; gap:8px;">
+  <span>ℹ️</span>
+  <span>Regular users have <strong>view-only</strong> access to the dashboard. Admins can delete user accounts below. Users can change their own password by clicking their name in the top bar.</span>
+</div>
+
+<div class="card">
+  {% if users %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Display Name</th>
+          <th>Role</th>
+          <th>Registered On</th>
+          <th style="text-align:center;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u.username }}</strong></td>
+          <td>{{ u.display_name }}</td>
+          <td>
+            <span class="badge badge-purple">{{ u.role|capitalize }}</span>
+          </td>
+          <td class="text-muted">
+            {{ u.created_at[:10] }}
+          </td>
+          <td style="text-align:center;">
+            <form method="POST" action="{{ url_for('delete_user', username=u.username) }}"
+                  onsubmit="return confirm('Delete user \'{{ u.username }}\'? This cannot be undone.')">
+              <button type="submit" class="btn btn-sm"
+                      style="background:rgba(255,77,109,0.12); color:#ff4d6d; border:1px solid rgba(255,77,109,0.3); padding:4px 14px; font-size:0.78rem;">
+                🗑 Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">👥</div>
+    <p>No regular users have signed up yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

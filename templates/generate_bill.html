@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Generate Bill{% endblock %}
+{% block page_title %}Generate Bill{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">💰 Generate Bill</h2>
+  <a href="{{ url_for('billing') }}" class="btn btn-ghost">← Back</a>
+</div>
+<div class="card" style="max-width:500px">
+  <form method="POST">
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Customer</label>
+        <select class="form-control" name="customer_id" required>
+          <option value="">— Select Customer —</option>
+          {% for c in customers %}
+            <option value="{{ c.customer_id }}">#{{ c.customer_id }} — {{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Room Number (optional — for room charges)</label>
+        <select class="form-control" name="room_number">
+          <option value="">— No Room / Food only —</option>
+          {% for r in rooms %}
+            <option value="{{ r.room_number }}">{{ r.room_number }} ({{ r.room_type }})</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <p class="text-muted mt-4" style="font-size:0.82rem">
+      ℹ️ All confirmed food orders for this customer will be included automatically.
+      18% GST will be applied on the subtotal.
+    </p>
+    <div class="flex gap-3 mt-6">
+      <button type="submit" class="btn btn-primary">Generate Invoice</button>
+      <a href="{{ url_for('billing') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

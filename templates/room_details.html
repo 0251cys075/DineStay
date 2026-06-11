@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Room {{ room.room_number }}{% endblock %}
+{% block page_title %}Room Details{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">🛏 Room {{ room.room_number }} Details</h2>
+  <a href="{{ url_for('rooms') }}" class="btn btn-ghost">← Back</a>
+</div>
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Room Info</span></div>
+    <div class="table-wrapper">
+      <table>
+        <tbody>
+          <tr><td class="text-muted">Room ID</td><td><strong>{{ room.room_id }}</strong></td></tr>
+          <tr><td class="text-muted">Number</td><td><strong>{{ room.room_number }}</strong></td></tr>
+          <tr><td class="text-muted">Type</td><td><span class="badge badge-purple">{{ room.room_type }}</span></td></tr>
+          <tr><td class="text-muted">Price/Night</td><td class="text-gold"><strong>₹{{ "{:,.2f}".format(room.room_price) }}</strong></td></tr>
+          <tr><td class="text-muted">Status</td>
+            <td>
+              {% if room.availability_status %}
+                <span class="badge badge-green">✅ Available</span>
+              {% else %}
+                <span class="badge badge-red">🔒 Booked</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% if room.booked_by %}
+          <tr><td class="text-muted">Booked By</td><td>Customer #{{ room.booked_by }}</td></tr>
+          <tr><td class="text-muted">Check-In</td><td>{{ room.check_in_date.strftime('%d %b %Y') }}</td></tr>
+          <tr><td class="text-muted">Check-Out</td><td>{{ room.check_out_date.strftime('%d %b %Y') }}</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Facilities</span></div>
+    <div class="flex gap-3" style="flex-wrap:wrap">
+      {% for f in room.BASE_FACILITIES %}
+        <span class="badge badge-blue">{{ f }}</span>
+      {% endfor %}
+      {% if room.room_type == 'Deluxe' %}
+        {% if room.wifi %}<span class="badge badge-green">📶 Wi-Fi</span>{% endif %}
+        {% if room.minibar %}<span class="badge badge-gold">🍸 Minibar</span>{% endif %}
+        {% if room.complimentary_breakfast %}<span class="badge badge-purple">🍳 Breakfast</span>{% endif %}
+      {% else %}
+        {% if room.television %}<span class="badge badge-blue">📺 TV</span>{% endif %}
+        {% if room.air_conditioning %}<span class="badge badge-teal">❄️ A/C</span>{% endif %}
+      {% endif %}
+    </div>
+    {% if not room.availability_status %}
+    <div class="mt-6">
+      <form method="POST" action="{{ url_for('checkout_room', room_number=room.room_number) }}">
+        <button type="submit" class="btn btn-danger">🚪 Check Out Guest</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

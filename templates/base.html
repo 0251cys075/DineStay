@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}DineStay{% endblock %} — Hotel & Restaurant</title>
+  <meta name="description" content="DineStay Hotel & Restaurant Management System"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <span class="brand-icon">🏨</span>
+    <span class="brand-name">DineStay</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="{{ url_for('dashboard') }}"   class="nav-item {% if request.endpoint=='dashboard' %}active{% endif %}">
+      <span class="nav-icon">📊</span><span>Dashboard</span>
+    </a>
+    <a href="{{ url_for('explore') }}"      class="nav-item {% if 'explore' in (request.endpoint or '') %}active{% endif %}">
+      <span class="nav-icon">🇮🇳</span><span>Explore India</span>
+    </a>
+    {% if is_admin %}
+    <a href="{{ url_for('customers') }}"   class="nav-item {% if 'customer' in (request.endpoint or '') %}active{% endif %}">
+      <span class="nav-icon">👥</span><span>Customers</span>
+    </a>
+    {% endif %}
+    <a href="{{ url_for('rooms') }}"       class="nav-item {% if request.endpoint in ['rooms','add_room','room_details'] %}active{% endif %}">
+      <span class="nav-icon">🛏</span><span>Rooms</span>
+    </a>
+    {% if is_admin %}
+    <a href="{{ url_for('booking') }}"     class="nav-item {% if request.endpoint=='booking' %}active{% endif %}">
+      <span class="nav-icon">🗓</span><span>Booking</span>
+    </a>
+    {% endif %}
+    <a href="{{ url_for('menu') }}"        class="nav-item {% if request.endpoint in ['menu','add_food','edit_food'] %}active{% endif %}">
+      <span class="nav-icon">🍽</span><span>Menu</span>
+    </a>
+    {% if is_admin %}
+    <a href="{{ url_for('orders') }}"      class="nav-item {% if 'order' in (request.endpoint or '') %}active{% endif %}">
+      <span class="nav-icon">🛒</span><span>Orders</span>
+    </a>
+    <a href="{{ url_for('billing') }}"     class="nav-item {% if 'bill' in (request.endpoint or '') %}active{% endif %}">
+      <span class="nav-icon">💰</span><span>Billing</span>
+    </a>
+    <a href="{{ url_for('employees') }}"   class="nav-item {% if 'employee' in (request.endpoint or '') %}active{% endif %}">
+      <span class="nav-icon">👤</span><span>Employees</span>
+    </a>
+    <a href="{{ url_for('reports') }}"     class="nav-item {% if request.endpoint=='reports' %}active{% endif %}">
+      <span class="nav-icon">📈</span><span>Reports</span>
+    </a>
+    <a href="{{ url_for('admin_users') }}"  class="nav-item {% if request.endpoint=='admin_users' %}active{% endif %}">
+      <span class="nav-icon">🛡</span><span>User Manager</span>
+    </a>
+    <a href="{{ url_for('admin_profile') }}" class="nav-item {% if request.endpoint=='admin_profile' %}active{% endif %}">
+      <span class="nav-icon">⚙️</span><span>Admin Settings</span>
+    </a>
+    {% endif %}
+  </nav>
+  <div class="sidebar-footer">v1.0 &copy; 2024 DineStay</div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+  <!-- Top Bar -->
+  <header class="topbar">
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Toggle menu">☰</button>
+    <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+    <div class="topbar-right">
+      {% if is_admin %}
+        <a href="{{ url_for('admin_profile') }}" class="topbar-badge" style="background:linear-gradient(135deg,#f5c842,#fb923c);color:#1a1200;text-decoration:none">🔑 Admin</a>
+      {% elif is_logged %}
+        <a href="{{ url_for('user_profile') }}" class="topbar-badge" style="background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;text-decoration:none">👤 {{ current_user }}</a>
+      {% endif %}
+      {% if is_logged %}
+        <a href="{{ url_for('logout') }}" class="topbar-logout">🚪 Logout</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">
+            <span>{{ '✅' if category == 'success' else '❌' }} {{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Page Content -->
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<script>
+  // Auto-dismiss flash messages after 4s
+  setTimeout(() => {
+    document.querySelectorAll('.flash').forEach(el => {
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 400);
+    });
+  }, 4000);
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Orders{% endblock %}
+{% block page_title %}Restaurant Orders{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <h2 class="section-title">🛒 Active Kitchen Orders</h2>
+  <a href="{{ url_for('place_order') }}" class="btn btn-primary" style="box-shadow: 0 4px 15px rgba(108,99,255,0.4);">+ Place Food Order</a>
+</div>
+
+{% if orders %}
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+  {% for o in orders %}
+    <div class="card card-premium" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+      <div>
+        <!-- Order Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 12px;">
+          <div>
+            <span class="badge badge-blue" style="font-size: 0.8rem; font-weight: 700; padding: 4px 8px;">Order #{{ o.order_id }}</span>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Guest ID: <strong>#{{ o.customer_id }}</strong></div>
+          </div>
+          <span class="badge {{ 'badge-green' if o.order_status == 'Confirmed' else 'badge-red' }}" style="padding: 4px 10px; font-weight: 700;">
+            {{ o.order_status }}
+          </span>
+        </div>
+
+        <!-- Ordered Items List with Thumbnails -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for fi, qty in o.ordered_items %}
+            {% set details = food_details.get(fi.food_name) %}
+            <div style="display: flex; align-items: center; gap: 10px; background: rgba(13,15,26,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;">
+              <img src="{{ details.image if (details and details.image) else default_food_img }}"
+                   alt="{{ fi.food_name }}"
+                   onerror="this.src='{{ default_food_img }}'"
+                   style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover; background: #0f111e; border: 1px solid var(--border);">
+              <div style="flex-grow: 1;">
+                <div style="font-size: 0.85rem; font-weight: 700;">{{ fi.food_name }}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                  ₹{{ "%.2f"|format(fi.price) }} × {{ qty }}
+                </div>
+              </div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent3);">
+                ₹{{ "%.2f"|format(fi.price * qty) }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Order Footer Details -->
+      <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-top: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Placed on</div>
+            <div style="font-size: 0.78rem; font-weight: 500; color: var(--text-muted);">{{ o.order_time.strftime('%d-%b-%Y %H:%M') }}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Total Charges</div>
+            <div style="font-size: 1.15rem; font-weight: 800; color: var(--accent3);">₹{{ "%.2f"|format(o.total_amount) }}</div>
+          </div>
+        </div>
+
+        {% if o.order_status == 'Confirmed' %}
+          <form method="POST" action="{{ url_for('cancel_order', oid=o.order_id) }}">
+            <button type="submit" class="btn btn-danger btn-sm" style="width: 100%; justify-content: center; box-shadow: 0 4px 10px rgba(239,68,68,0.2);" 
+                    onclick="return confirm('Are you sure you want to cancel Order #{{ o.order_id }}?')">
+              Cancel Order
+            </button>
+          </form>
+        {% else %}
+          <button class="btn btn-ghost btn-sm" style="width: 100%; justify-content: center; cursor: not-allowed; opacity: 0.5;" disabled>
+            Closed
+          </button>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card card-premium">
+  <div class="empty-state">
+    <div class="empty-icon">🛒</div>
+    <p>No culinary orders have been logged yet.</p>
+    <a href="{{ url_for('place_order') }}" class="btn btn-primary mt-4">Place First Order</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
