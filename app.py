@@ -1312,35 +1312,34 @@ def api_chat():
 
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        response = make_response(jsonify({"error": "Gemini API key is not configured"}), 500)
+        response = make_response(jsonify({"error": "API key is not configured"}), 500)
         response.headers["Access-Control-Allow-Origin"] = "*"
         return response
 
-    # Prepare call to Gemini API
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
+    # OpenRouter API call
+    url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://dine-stay.vercel.app",
+        "X-Title": "DineStay"
     }
     
     system_instruction = "You are a helpful assistant for Dine-Stay, a restaurant and hotel booking website. Help users with menu, rooms, pricing, availability, and bookings. Be friendly and brief."
     
     payload = {
-        "contents": [
+        "model": "google/gemini-2.5-flash",
+        "messages": [
             {
-                "parts": [
-                    {
-                        "text": user_message
-                    }
-                ]
+                "role": "system",
+                "content": system_instruction
+            },
+            {
+                "role": "user",
+                "content": user_message
             }
         ],
-        "systemInstruction": {
-            "parts": [
-                {
-                    "text": system_instruction
-                }
-            ]
-        }
+        "max_tokens": 1000
     }
 
     try:
@@ -1348,14 +1347,22 @@ def api_chat():
         api_response.raise_for_status()
         res_json = api_response.json()
         
-        # Parse the reply
+        # Parse the reply from OpenRouter
         try:
-            bot_reply = res_json["candidates"][0]["content"]["parts"][0]["text"]
+            bot_reply = res_json["choices"][0]["message"]["content"]
         except (KeyError, IndexError):
             bot_reply = "I apologize, but I received an invalid response structure from the assistant engine."
             
     except requests.exceptions.RequestException as e:
-        bot_reply = f"Error communicating with Gemini: {str(e)}"
+        error_msg = str(e)
+        try:
+            if 'api_response' in locals() and api_response.text:
+                err_json = api_response.json()
+                if "error" in err_json and "message" in err_json["error"]:
+                    error_msg = err_json["error"]["message"]
+        except Exception:
+            pass
+        bot_reply = f"Error communicating with Gemini (OpenRouter): {error_msg}"
 
     response = make_response(jsonify({"reply": bot_reply}))
     response.headers["Access-Control-Allow-Origin"] = "*"
