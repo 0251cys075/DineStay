@@ -1316,19 +1316,17 @@ def api_chat():
         response.headers["Access-Control-Allow-Origin"] = "*"
         return response
 
-    # OpenRouter API call
-    url = "https://openrouter.ai/api/v1/chat/completions"
+    # Groq API completions call
+    url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://dine-stay.vercel.app",
-        "X-Title": "DineStay"
+        "Content-Type": "application/json"
     }
     
     system_instruction = "You are a helpful assistant for Dine-Stay, a restaurant and hotel booking website. Help users with menu, rooms, pricing, availability, and bookings. Be friendly and brief."
     
     payload = {
-        "model": "google/gemini-2.5-flash",
+        "model": "llama-3.3-70b-versatile",
         "messages": [
             {
                 "role": "system",
@@ -1347,7 +1345,7 @@ def api_chat():
         api_response.raise_for_status()
         res_json = api_response.json()
         
-        # Parse the reply from OpenRouter
+        # Parse the reply from Groq
         try:
             bot_reply = res_json["choices"][0]["message"]["content"]
         except (KeyError, IndexError):
@@ -1362,7 +1360,7 @@ def api_chat():
                     error_msg = err_json["error"]["message"]
         except Exception:
             pass
-        bot_reply = f"Error communicating with Gemini (OpenRouter): {error_msg}"
+        bot_reply = f"Error communicating with Groq: {error_msg}"
 
     response = make_response(jsonify({"reply": bot_reply}))
     response.headers["Access-Control-Allow-Origin"] = "*"
