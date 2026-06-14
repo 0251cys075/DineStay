@@ -101,7 +101,14 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (!response.ok) {
-                throw new Error("Failed to get response");
+                let errorMsg = "Failed to get response";
+                try {
+                    const errData = await response.json();
+                    if (errData && errData.error) {
+                        errorMsg = errData.error;
+                    }
+                } catch (err) {}
+                throw new Error(errorMsg);
             }
 
             const data = await response.json();
@@ -115,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Chat error:", error);
             typingIndicator.classList.add("hidden");
-            appendMessage("Sorry, I am having trouble connecting right now. Please try again later.", "bot error-message");
+            appendMessage(`Sorry, I am having trouble connecting right now (${error.message}). Please try again later.`, "bot error-message");
             scrollToBottom();
         }
     }
