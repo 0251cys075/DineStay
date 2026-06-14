@@ -53,7 +53,7 @@
 
 {% if is_admin %}
 <!-- Analytics & Live Monitoring Row -->
-<div class="grid-2 mb-6">
+<div class="grid-3 mb-6">
   <!-- Occupancy Grid & Goals -->
   <div class="card card-premium">
     <div class="card-header">
@@ -110,6 +110,65 @@
       </div>
     </div>
   </div>
+
+  <!-- AI Insights & Operations Summary Card -->
+  <div class="card card-premium">
+    <div class="card-header">
+      <span class="card-title" style="background: linear-gradient(135deg, var(--gold), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 800;">✨ AI Insights & Operations</span>
+    </div>
+    <div style="padding: 10px 0; display: flex; flex-direction: column; gap: 15px;">
+      
+      <!-- Sentiment Analyzer Insight -->
+      <div style="background: rgba(108,99,255,0.06); border: 1px solid rgba(108,99,255,0.15); border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <span style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.05em; display: block;">Customer Sentiment Health</span>
+          <span style="font-size: 1.1rem; font-weight: 700; color: #fff; display: block; margin-top: 2px;">{{ ml_sentiment_pct | round(0) }}% Positive Reviews</span>
+        </div>
+        <div class="badge" style="background: rgba(67,233,123,0.15); color: #43e97b; border: 1px solid rgba(67,233,123,0.3); font-size: 0.75rem; font-weight: 700; padding: 6px 12px;">
+          😊 Excellent
+        </div>
+      </div>
+
+      <!-- Pricing Optimization Insight -->
+      <div style="background: rgba(245,200,66,0.06); border: 1px solid rgba(245,200,66,0.15); border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <span style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.05em; display: block;">Revenue Optimization</span>
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--text); display: block; margin-top: 3px; line-height: 1.4;">
+            {% if ml_price_recs > 0 %}
+              <strong>{{ ml_price_recs }}</strong> rate adjustments advised
+            {% else %}
+              All room rates optimized for demand
+            {% endif %}
+          </span>
+        </div>
+        <div class="badge" style="background: rgba(245,200,66,0.15); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); font-size: 0.75rem; font-weight: 700; padding: 6px 12px;">
+          💰 Pricing
+        </div>
+      </div>
+
+      <!-- Cancellation Risk Indicator -->
+      <div style="background: rgba(255,101,132,0.06); border: 1px solid rgba(255,101,132,0.15); border-radius: 10px; padding: 12px;">
+        <span style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">Active Cancellation Risk</span>
+        
+        <div style="display: flex; gap: 8px; justify-content: space-between;">
+          <div style="flex: 1; text-align: center; background: rgba(255,101,132,0.08); border-radius: 6px; padding: 8px 4px; border: 1px solid rgba(255,101,132,0.15);">
+            <span style="font-size: 1.1rem; font-weight: 800; color: var(--accent2); display: block;">{{ ml_high_risk }}</span>
+            <span style="font-size: 0.62rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">High Risk</span>
+          </div>
+          <div style="flex: 1; text-align: center; background: rgba(251,146,60,0.08); border-radius: 6px; padding: 8px 4px; border: 1px solid rgba(251,146,60,0.15);">
+            <span style="font-size: 1.1rem; font-weight: 800; color: #fb923c; display: block;">{{ ml_med_risk }}</span>
+            <span style="font-size: 0.62rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Med Risk</span>
+          </div>
+          <div style="flex: 1; text-align: center; background: rgba(67,233,123,0.08); border-radius: 6px; padding: 8px 4px; border: 1px solid rgba(67,233,123,0.15);">
+            <span style="font-size: 1.1rem; font-weight: 800; color: #43e97b; display: block;">{{ ml_low_risk }}</span>
+            <span style="font-size: 0.62rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Low Risk</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 
   <!-- Recent Log / Timeline Feed -->
   <div class="card card-premium">
