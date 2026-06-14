@@ -15,6 +15,10 @@ import os
 import sys
 import io
 import functools
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Fix Windows console encoding for emoji/Unicode
 if sys.platform == "win32":
@@ -24,7 +28,7 @@ if sys.platform == "win32":
 from datetime import datetime, timedelta
 from typing import Optional
 from flask import (Flask, render_template, request, redirect,
-                   url_for, flash, session)
+                   url_for, flash, session, jsonify, make_response)
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -1285,6 +1289,79 @@ def explore_event_delete(loc_id, ev_id):
         file_handler.save_explore_data(locations)
         flash("Event deleted successfully.", "success")
     return redirect(url_for("explore_detail", loc_id=loc_id))
+
+
+@app.route("/api/chat", methods=["POST", "OPTIONS"])
+def api_chat():
+    import requests
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        return response
+
+    # Get data from request
+    req_data = request.get_json(silent=True) or {}
+    user_message = req_data.get("message", "").strip()
+
+    if not user_message:
+        response = make_response(jsonify({"error": "Message is required"}), 400)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        return response
+
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        response = make_response(jsonify({"error": "Gemini API key is not configured"}), 500)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        return response
+
+    # Prepare call to Gemini API
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    system_instruction = "You are a helpful assistant for Dine-Stay, a restaurant and hotel booking website. Help users with menu, rooms, pricing, availability, and bookings. Be friendly and brief."
+    
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {
+                        "text": user_message
+                    }
+                ]
+            }
+        ],
+        "systemInstruction": {
+            "parts": [
+                {
+                    "text": system_instruction
+                }
+            ]
+        }
+    }
+
+    try:
+        api_response = requests.post(url, headers=headers, json=payload, timeout=30)
+        api_response.raise_for_status()
+        res_json = api_response.json()
+        
+        # Parse the reply
+        try:
+            bot_reply = res_json["candidates"][0]["content"]["parts"][0]["text"]
+        except (KeyError, IndexError):
+            bot_reply = "I apologize, but I received an invalid response structure from the assistant engine."
+            
+    except requests.exceptions.RequestException as e:
+        bot_reply = f"Error communicating with Gemini: {str(e)}"
+
+    response = make_response(jsonify({"reply": bot_reply}))
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    return response
 
 
 if __name__ == "__main__":
